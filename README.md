@@ -1,28 +1,42 @@
-# PONG
+# Pong
 
-This is a recreation of the classic pong video game. Implemented in the C
-programming language, using SDL library to display graphics on the screen.
+Code original : https://github.com/flightcrank/pong
 
-To compile you need to have SDL installed on your system and the header files
-available to you operating systems PATH environment variable
+## évolutions:
+- Refactorisation du code
+- Corrections de bugs
+- Clarification de la game loop
+- Ajout possibilité de changer de résolution
+- Affichage du texte avec polices de caractères TTF
+- Préparation d'un mode multi-joueurs
 
-	gcc pong.c `sdl2-config --cflags --libs` -o pong
+## installation environnement de développement ubuntu 20.04 desktop
+```bash
+sudo apt-get update && sudo apt-get upgrade
+sudo apt-get install build-essential
+sudo apt-get install libsdl2-dev
+sudo apt-get install libsdl2-ttf-dev
+```
+## Compilation et exécution
 
-### Update 2019
+```bash
+$ make
+$ ./pong
+$ ./pong -f
+```
 
-This has been ported from SDL version 1 to work with SDL version 2. Also added is the ability to run the
-executable with the '-f' command line argument to run in fullscreen 
-(will stretch the 640 * 480 image your systems native display resolution)
+# Modifications
 
-I will take any feature requests like updating the AI or movement animation if there is any demand. Or 
-just clone the code and do it yourself. Enjoy!
+## version 0.1
 
-## Controls
-* space bar to start a game
-* arrow keys for movement
-* ESC to exit game
+- Modification de la gestion du parametre -f (fullscreen)
+- clarification du programme principal: isolation de la gestion des evenements clavier et de l'affichage
+- gestion du jeu suivant un automate à états finis
+- move_paddle: modification pour permettre par la suite une partie mulmtijoueur
+- Ajout de la fermeture de la fenetre en cliquant sur la croix
+- Textes par police TTF et plus par image
+- adaptation de la taille du jeu avec le changement de résolution
+- gestion du fullscreen
 
-## Images
-![title screen](http://i.imgur.com/radat.png)
-
-![game play](http://i.imgur.com/CZhqp.png)
+## version 0.2
+- modification algorithme move_paddle_ai()

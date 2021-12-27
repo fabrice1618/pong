@@ -7,14 +7,24 @@ extern DECLSPEC int SDLCALL TTF_Init(void);
 #include <stdio.h>
 #include <stdbool.h>
 
+#ifndef MAX
+#define MAX(x,y) (((x)>(y))? (x) : (y))
+#endif
+ 
+#ifndef MIN
+#define MIN(x,y) (((x)<(y))? (x) : (y))
+#endif 
+
 // Game configuration
 SDL_Color gameColor = {255,255,255,255};
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+//#define SCREEN_WIDTH 640
+//#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
 #define SCREEN_FG 0xffffffff
 #define SCREEN_BG 0x000000ff
-#define SCORE_WIN 10
+#define SCORE_WIN 3
 #define LOOP_TIME 20	// 50 frames par seconde
 
 typedef struct ball_s {
@@ -65,11 +75,10 @@ static void init_game()
 //return 0 if no one has reached a score of 10 yet
 int check_score() 
 {
-	for(int i = 0; i < 2; i++) {
-		if ( score[i] == SCORE_WIN ) {
+	for(int i = 0; i < 2; i++) 
+		if ( score[i] == SCORE_WIN ) 
 			return(i+1);
-		}
-	}
+
 	return 0;
 }
 
@@ -83,69 +92,69 @@ static void move_ball()
 	if (ball.x < 0) {		
 		score[1] += 1;
 		state  = GAME_START;
+		return;
 	}
 	if (ball.x > screen->w - 10) { 
 		score[0] += 1;
 		state  = GAME_START;
+		return;
 	}
 
-	if (state != GAME_START) {
-		// Rebond sur partie haute ou basse
-		if (ball.y < 0 || ball.y > screen->h - 10) {
-			ball_move.dy = -ball_move.dy;
-		}
+	// Rebond sur partie haute ou basse
+	if (ball.y < 0 || ball.y > screen->h - 10) {
+		ball_move.dy = -ball_move.dy;
+	}
 
-		//check for collision with the paddle
-		for (int i = 0; i < 2; i++) {
+	//check for collision with the paddle
+	for (int i = 0; i < 2; i++) {
 
-			//collision detected	
-			if ( SDL_HasIntersection(&ball, &paddle[i]) ) {
+		//collision detected	
+		if ( SDL_HasIntersection(&ball, &paddle[i]) ) {
 
-				// Accelerer la balle			
-				ball_move.dx +=  (ball_move.dx < 0) ? -1: 1;
-				//change ball direction
-				ball_move.dx = -ball_move.dx;
+			// Accelerer la balle			
+			ball_move.dx +=  (ball_move.dx < 0) ? -1: 1;
+			//change ball direction
+			ball_move.dx = -ball_move.dx;
 				
-				//change ball angle based on where on the paddle it hit
-				int hit_pos = (paddle[i].y + paddle[i].h) - ball.y;
-				ball_move.dy = 4 - (int)(hit_pos / 7);
-			}
+			//change ball angle based on where on the paddle it hit
+			int hit_pos = (paddle[i].y + paddle[i].h) - ball.y;
+			ball_move.dy = 4 - (int)(hit_pos / 7);
 		}
 	}
+
 }
 
 static void move_paddle_ai() 
 {
-	int paddle_center = paddle[0].y + 25;
-	int ball_speed;
+	int paddle_center;
+	int paddle_speed;
 	int paddle_goto;
+	int target;
 
-	ball_speed = abs(ball_move.dy);
-	ball_speed = (ball_speed==0) ? 5: ball_speed;
-	
+	paddle_center = paddle[0].y + 25;
+
 	if (ball_move.dx > 0) {
-
 		//ball moving right	-> return to center position
-		if (paddle_center < (screen->h/2) ) {
-			paddle_goto = paddle[0].y + ball_speed;
-		} else {
-			paddle_goto = paddle[0].y - ball_speed;
-		}
-	
+		target = screen->h/2;
+		paddle_speed = 1;
 	} else {
-
 		//ball moving left -> folllow ball
-		if (ball.y > paddle_center) { 
-			paddle_goto = paddle[0].y + ball_speed;
-		} else { 
-			paddle_goto = paddle[0].y - ball_speed;
-		}
+		target = ball.y+5;
+		paddle_speed = (paddle_speed==0) ? 5: abs(ball_move.dy);
 	}
+
+	if (target > paddle_center)
+		paddle_goto = MAX(paddle_center + paddle_speed, target);
+	else if (target < paddle_center)  
+		paddle_goto = MIN(paddle_center - paddle_speed, target);
+	else
+		paddle_goto = target;
 
 	// Pour eviter le clignotement
 	if ( abs(paddle_center-paddle_goto) > 5 ) {
-		paddle[0].y = paddle_goto;
+		paddle[0].y = paddle_goto-25;
 	}
+
 }
 
 static void move_paddle(int paddleNum, int paddleDirection) 
@@ -384,6 +393,8 @@ int main (int argc, char *args[])
 			case GAME_OVER:
 				if (keystate[SDL_SCANCODE_SPACE]) {
 					state = GAME_START;
+					score[0] = 0;	//reset scores
+					score[1] = 0;
 				}
 				break;
 		}
@@ -423,9 +434,6 @@ int main (int argc, char *args[])
 
 			case GAME_OVER:
 				draw_game_over();
-				//reset scores
-				score[0] = 0;
-				score[1] = 0;
 				break;
 
 			case GAME_QUIT:
